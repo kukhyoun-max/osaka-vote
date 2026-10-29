@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>*{box-sizing:border-box}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>오사카 음식투표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gothic+A1:wght@400;600;800&family=Zen+Old+Mincho:wght@700&display=swap">
+<style>
+/* Layout: full-height vertical feed, one dish per screen, snap scrolling like reels. Single dark look by choice. */
+:root{
+  --ink:#141110;          /* page ground */
+  --paper:#f6efe6;        /* primary text */
+  --muted:#b9ada0;        /* secondary text */
+  --line:rgba(246,239,230,.16);
+  --like:#ff7a59;         /* 좋아요 */
+  --meh:#e8c15a;          /* 보통 */
+  --no:#7d8aa3;           /* 싫어요 */
+  --chip:rgba(20,17,16,.55);
+  --f-display:"Do Hyeon","Gothic A1",system-ui,sans-serif;
+  --f-body:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-glyph:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  color-scheme:dark;
+}
+html,body{height:100%;background:var(--ink);color:var(--paper)}
+body{font-family:var(--f-body);overflow:hidden;-webkit-font-smoothing:antialiased}
+.feed{height:100%;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none}
+.feed::-webkit-scrollbar{display:none}
+.card{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+.inner{position:relative;z-index:2;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 28px}
+
+/* dish art */
+.art{position:absolute;inset:0;z-index:0}
+.art canvas{width:100%;height:100%;display:block}
+.art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(20,17,16,.55) 0%,rgba(20,17,16,0) 22%,rgba(20,17,16,0) 45%,rgba(20,17,16,.92) 82%)}
+
+/* top progress */
+.top{position:fixed;inset:0 0 auto;z-index:20;padding-top:calc(env(safe-area-inset-top,0px) + 10px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:4px;pointer-events:none}
+.top span{flex:1;height:3px;border-radius:2px;background:var(--line);transition:background .25s}
+.top span.on{background:var(--paper)}
+.top span.like{background:var(--like)}.top span.meh{background:var(--meh)}.top span.no{background:var(--no)}
+.who{position:fixed;z-index:20;top:calc(env(safe-area-inset-top,0px) + 22px);left:max(16px,env(safe-area-inset-left,0px));font-size:13px;color:var(--muted);pointer-events:none}
+
+/* caption */
+.slot{display:inline-flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tag{font-size:12px;font-weight:600;padding:5px 9px;border-radius:999px;background:var(--chip);border:1px solid var(--line);letter-spacing:.02em;backdrop-filter:blur(6px)}
+.tag.res{border-color:var(--like);color:var(--like)}
+.tag.walk{color:var(--muted)}
+.place{font-size:14px;color:var(--muted);margin:0 0 2px}
+.dish{font-family:var(--f-display);font-size:clamp(34px,9vw,48px);line-height:1.05;margin:0 0 8px;text-wrap:balance}
+.desc{font-size:14px;line-height:1.55;color:var(--paper);opacity:.9;max-width:34ch;margin:0}
+.seepics{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font:700 15px var(--f-body);color:var(--ink);background:var(--paper);border-radius:999px;padding:10px 16px;text-decoration:none}
+.seepics:focus-visible{outline:2px solid var(--like);outline-offset:2px}
+.wait{margin-top:10px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.wait b{color:var(--paper);font-weight:600}
+
+/* vote buttons, reels-style right rail */
+.rail{position:relative;z-index:3;order:3;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 6px}
+.vb{appearance:none;border:0;background:none;color:var(--paper);cursor:pointer;padding:0;min-width:0}
+.vb .dot{height:88px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font:800 19px var(--f-body);background:var(--chip);border:2px solid var(--line);backdrop-filter:blur(8px);transition:transform .15s,background .2s,border-color .2s}
+.vb svg{width:32px;height:32px}
+.vb:active .dot{transform:scale(.9)}
+.vb:focus-visible .dot{outline:2px solid var(--paper);outline-offset:3px}
+.vb[data-v="like"].sel .dot{background:var(--like);border-color:var(--like)}
+.vb[data-v="meh"].sel .dot{background:var(--meh);border-color:var(--meh);color:var(--ink)}
+.vb[data-v="no"].sel .dot{background:var(--no);border-color:var(--no)}
+.pop{animation:pop .35s ease}
+@keyframes pop{40%{transform:scale(1.25)}}
+.dishcard .inner{order:2;padding-block:20px 14px}
+.photo-btn{position:absolute;z-index:3;top:calc(env(safe-area-inset-top,0px) + 48px);right:max(16px,env(safe-area-inset-right,0px));font:700 14px var(--f-body);color:var(--ink);background:var(--paper);border-radius:999px;padding:10px 14px;cursor:pointer}
+.photo-btn input{display:none}
+.credit{position:absolute;z-index:3;right:max(16px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 92px);max-width:60%;text-align:right;font-size:10px;line-height:1.35;color:var(--paper);opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+.hint{position:relative;z-index:3;order:4;text-align:center;font-size:12px;color:var(--muted);padding-block:6px 14px}
+
+/* start card */
+.start{justify-content:center;background:radial-gradient(120% 80% at 70% 10%,#5a2a1c 0%,var(--ink) 60%)}
+.start .inner{padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px;max-width:520px}
+.kicker{font-size:13px;letter-spacing:.12em;color:var(--like);font-weight:800}
+.start h1{font-family:var(--f-display);font-size:clamp(40px,11vw,60px);line-height:1;margin:0}
+.start p{margin:0;color:var(--muted);line-height:1.6;font-size:15px}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--paper)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
+label.lbl{font-size:13px;color:var(--muted)}
+.namebox{display:flex;gap:8px}
+input[type=text],textarea{width:100%;min-width:0;background:rgba(246,239,230,.08);border:1px solid var(--line);color:var(--paper);border-radius:12px;padding:14px;font:16px var(--f-body)}
+input[type=text]:focus,textarea:focus{outline:2px solid var(--like);outline-offset:1px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips button{appearance:none;border:1px solid var(--line);background:transparent;color:var(--paper);border-radius:999px;padding:8px 14px;font:600 14px var(--f-body);cursor:pointer}
+.chips button.on{background:var(--paper);color:var(--ink)}
+.go{appearance:none;border:0;border-radius:14px;padding:16px;background:var(--like);color:#1b0f0b;font:800 17px var(--f-body);cursor:pointer}
+.go:disabled{opacity:.4;cursor:default}
+.go:focus-visible,.chips button:focus-visible,.ghost:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
+
+/* result card */
+.result{justify-content:flex-start;background:var(--ink)}
+.result .inner{padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:calc(env(safe-area-inset-top,0px) + 40px);overflow-y:auto;height:100%;display:flex;flex-direction:column;gap:22px;max-width:640px;width:100%;margin:0 auto}
+.result h2{font-family:var(--f-display);font-size:34px;margin:0}
+.sub{color:var(--muted);font-size:14px;margin:4px 0 0;line-height:1.5}
+.slotblock h3{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:0 0 10px;font-weight:800}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.row .nm{font-weight:600;font-size:15px;min-width:0}
+.row .nm small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
+.row .sc{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);text-align:right}
+.row .sc b{color:var(--paper);font-size:18px;margin-right:2px}
+.bar{grid-column:1/-1;display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line)}
+.bar span{display:block;height:100%}
+.row.win .nm::before{content:attr(data-rank) "위";font-size:11px;font-weight:800;color:var(--ink);background:var(--like);border-radius:4px;padding:2px 5px;margin-right:6px;vertical-align:2px}
+.voters{font-size:12px;color:var(--muted);grid-column:1/-1;line-height:1.5}
+.box{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.box p{margin:0;font-size:13px;color:var(--muted);line-height:1.55}
+.ghost{appearance:none;background:transparent;border:1px solid var(--line);color:var(--paper);border-radius:12px;padding:12px;font:600 14px var(--f-body);cursor:pointer}
+.status{font-size:12px;color:var(--muted)}
+.status.ok{color:var(--meh)}
+code.cd{display:block;font-size:12px;word-break:break-all;color:var(--muted);background:rgba(246,239,230,.06);padding:10px;border-radius:8px;user-select:all}
+.empty{color:var(--muted);font-size:14px;padding:12px 0}
+@media (prefers-reduced-motion:reduce){.pop{animation:none}.feed{scroll-behavior:auto}}
+</style>
+
+</head>
+<body>
+<div class="top" id="prog" hidden></div>
+<div class="who" id="who" hidden></div>
+<main class="feed" id="feed"></main>
+
+<script>
+const MENUS=[
+ {id:"takoyaki",jp:"たこ焼き",cat:"오사카 명물 · 길거리",dish:"타코야키",glyph:"蛸",hue:[24,8],desc:"문어가 들어간 동그란 밀가루 반죽 구이. 겉은 바삭, 속은 촉촉."},
+ {id:"okonomi",jp:"お好み焼き 大阪",cat:"오사카 명물 · 철판",dish:"오코노미야키",glyph:"焼",hue:[22,10],desc:"양배추 듬뿍 넣은 반죽에 돼지고기·해물을 올려 철판에 굽는 오사카식 전."},
+ {id:"kushikatsu",jp:"串カツ 新世界",cat:"오사카 명물 · 튀김",dish:"쿠시카츠",glyph:"串",hue:[35,15],desc:"고기·채소·해물 꼬치튀김. 공용 소스는 한 번만 찍는 게 규칙."},
+ {id:"udon",jp:"きつねうどん 大阪",cat:"오사카 명물 · 면",dish:"키츠네 우동",glyph:"饂",hue:[38,30],desc:"맑은 간사이 다시 국물에 달게 조린 큰 유부. 속 편한 한 그릇."},
+ {id:"unagi",jp:"うな重",cat:"정식 · 덮밥",dish:"장어덮밥",glyph:"鰻",hue:[28,40],desc:"양념 바른 장어구이를 밥 위에. 부모님 식사로 무난한 보양식."},
+ {id:"sushi",jp:"寿司 大阪",cat:"해산물",dish:"스시",glyph:"鮨",hue:[200,220],desc:"회전초밥부터 카운터 스시까지. 오사카식 상자초밥(하코즈시)도 있어요."},
+ {id:"kani",jp:"かに料理 道頓堀",cat:"해산물 · 코스",dish:"게 요리 코스",glyph:"蟹",hue:[8,355],desc:"게 회·구이·튀김·전골까지 나오는 코스. 앉아서 천천히 먹기 좋아요."},
+ {id:"yakiniku",jp:"和牛 焼肉",cat:"고기",dish:"와규 야키니쿠",glyph:"肉",hue:[0,18],desc:"마블링 좋은 일본 소고기를 숯불에 직접 굽는 고기집."},
+ {id:"sukiyaki",jp:"すき焼き",cat:"고기 · 전골",dish:"스키야키",glyph:"鋤",hue:[15,350],desc:"간장·설탕 국물에 소고기를 익혀 날계란에 찍어 먹는 전골."},
+ {id:"shabu",jp:"しゃぶしゃぶ",cat:"고기 · 전골",dish:"샤브샤브",glyph:"鍋",hue:[12,340],desc:"얇은 고기를 다시 국물에 살짝 데쳐 소스에 찍어 먹어요."},
+ {id:"gyukatsu",jp:"牛カツ",cat:"고기 · 튀김",dish:"규카츠",glyph:"牛",hue:[18,30],desc:"속은 레어로 튀긴 소고기 커틀릿. 작은 화로에 취향껏 더 구워 먹어요."},
+ {id:"ramen",jp:"ラーメン 大阪",cat:"면",dish:"라멘",glyph:"麺",hue:[40,20],desc:"돈코츠·쇼유·시오 등. 웨이팅 짧고 빨리 먹기 좋은 한 끼."},
+ {id:"tempura",jp:"天ぷら 天丼",cat:"튀김 · 덮밥",dish:"텐푸라 · 텐동",glyph:"天",hue:[44,28],desc:"새우·채소 튀김 정식이나 튀김을 올린 덮밥."},
+ {id:"yudofu",jp:"湯豆腐 京都",cat:"교토 명물",dish:"유도후",glyph:"豆",hue:[45,60],desc:"다시마 국물에 데운 두부. 교토 사찰 요리답게 담백하고 속 편해요."},
+ {id:"butaman",jp:"551蓬莱 豚まん",cat:"간식 · 테이크아웃",dish:"551 호라이 부타만",glyph:"饅",hue:[30,45],desc:"오사카 대표 고기 찐빵. 줄 서서 사서 호텔에서 먹기 좋아요."},
+ {id:"cheesecake",jp:"りくろーおじさん チーズケーキ",cat:"디저트",dish:"리쿠로 치즈케이크",glyph:"菓",hue:[42,32],desc:"갓 구운 폭신한 수플레 치즈케이크. 오사카 대표 디저트 선물."},
+ {id:"matcha",jp:"抹茶 パフェ 京都",cat:"교토 · 디저트",dish:"말차 디저트",glyph:"茶",hue:[95,120],desc:"말차 파르페·아이스크림. 교토 일정 중 카페 휴식 메뉴로."}
+];
+const PRESETS=["아빠","엄마","진선","세훈","채민","국현"];
+const SCORE={like:2,meh:1,no:0};
+const LABEL={like:"좋아요",meh:"보통",no:"싫어요"};
+const ICON={
+ like:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.6-9.2C1 8.6 3 5 6.6 5c2 0 3.4 1.1 4.2 2.4h2.4C14 6.1 15.4 5 17.4 5 21 5 23 8.6 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg>',
+ meh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14.5h8"/><circle cx="9" cy="9.5" r=".6" fill="currentColor"/><circle cx="15" cy="9.5" r=".6" fill="currentColor"/></svg>',
+ no:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+};
+
+/* ▼▼ Apps Script 웹앱 URL을 따옴표 안에 붙여넣으세요 ▼▼ */
+const API="https://script.google.com/macros/s/AKfycbxEidX9GTyMwnZNcZ8fszXV-zK3BefgVdp6pnZ_fX3jOgiAMIIGV_aCY3Mwp6BvBOvlUg/exec";
+/* ▲▲ */
+const S={name:"",picks:{},remote:{},imported:{},photos:{},credits:{},db:null,assets:null,saveTimer:null,saving:false,dirty:false,dbOk:null};
+const $=s=>document.querySelector(s);
+const feed=$("#feed");
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const keyOf=n=>"v"+Array.from(n).map(c=>c.codePointAt(0).toString(16)).join("");
+
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||"null");localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+
+/* ---------- build feed ---------- */
+function build(){
+  let h=`<section class="card start" id="c-start"><div class="inner">
+    <div class="kicker">OSAKA · KYOTO 11.12–15</div>
+    <h1>뭐 먹을까?</h1>
+    <p>오사카·교토 대표 음식 17가지. 위로 넘기면서 버튼만 누르면 끝이에요. 가족 선호도 순위를 보고 가게를 정할게요.</p>
+    <div class="legend"><span><i style="background:var(--like)"></i>좋아요</span><span><i style="background:var(--meh)"></i>보통</span><span><i style="background:var(--no)"></i>싫어요</span></div>
+    <label class="lbl" for="name">누구세요?</label>
+    <div class="chips" id="chips">${PRESETS.map(p=>`<button type="button" data-n="${p}">${p}</button>`).join("")}</div>
+    <input type="text" id="name" placeholder="이름 직접 입력" maxlength="12" autocomplete="off">
+    <button class="go" id="go" disabled>시작하기</button>
+  </div></section>`;
+  MENUS.forEach((m,i)=>{
+    h+=`<section class="card dishcard" id="c-${m.id}" data-i="${i}">
+      <div class="art"><canvas data-id="${m.id}"></canvas></div><div class="shade"></div>
+      <div class="rail">${["like","meh","no"].map(v=>`<button class="vb" data-v="${v}" data-id="${m.id}" aria-label="${m.dish} ${LABEL[v]}"><span class="dot">${ICON[v]}${LABEL[v]}</span></button>`).join("")}</div>
+      <div class="inner">
+        <div class="slot"><span class="tag">${m.cat}</span><span class="tag walk">${i+1} / ${MENUS.length}</span></div>
+        <h2 class="dish">${m.dish}</h2>
+        <p class="desc">${m.desc}</p>
+        <a class="seepics" href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(m.jp)}" target="_blank" rel="noopener">사진 더 보기 ↗</a>
+      </div>
+      <div class="hint">${i<MENUS.length-1?"위로 넘기면 다음 메뉴":"위로 넘기면 결과"}</div>
+    </section>`;
+  });
+  h+=`<section class="card result" id="c-result"><div class="inner" id="resultInner"></div></section>`;
+  feed.innerHTML=h;
+  $("#prog").innerHTML=MENUS.map(m=>`<span data-id="${m.id}"></span>`).join("");
+  document.querySelectorAll(".art canvas").forEach(paint);
+}
+
+/* generative dish art: warm lacquer gradient + brush kanji */
+function paint(cv){
+  const m=MENUS.find(x=>x.id===cv.dataset.id);
+  const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);
+  const w=Math.max(320,r.width||400),hh=Math.max(560,r.height||800);
+  cv.width=w*d;cv.height=hh*d;const c=cv.getContext("2d");c.scale(d,d);
+  const g=c.createLinearGradient(0,0,w,hh);
+  g.addColorStop(0,`hsl(${m.hue[0]} 55% 34%)`);g.addColorStop(1,`hsl(${m.hue[1]} 45% 12%)`);
+  c.fillStyle=g;c.fillRect(0,0,w,hh);
+  // seigaiha-ish arcs
+  c.strokeStyle="rgba(246,239,230,.05)";c.lineWidth=1.2;
+  const s=46;for(let y=0;y<hh+s;y+=s/2)for(let x=(y/(s/2))%2?s/2:0;x<w+s;x+=s){for(let k=1;k<=3;k++){c.beginPath();c.arc(x,y,s/2*k/3,Math.PI,0);c.stroke()}}
+  // sun disc
+  const cx=w*.62,cy=hh*.34,rad=Math.min(w,hh)*.32;
+  const rg=c.createRadialGradient(cx,cy,rad*.1,cx,cy,rad);
+  rg.addColorStop(0,`hsla(${m.hue[0]} 80% 62% /.55)`);rg.addColorStop(1,`hsla(${m.hue[0]} 80% 50% /0)`);
+  c.fillStyle=rg;c.beginPath();c.arc(cx,cy,rad,0,Math.PI*2);c.fill();
+  c.fillStyle="rgba(246,239,230,.92)";c.textAlign="center";c.textBaseline="middle";
+  c.font=`700 ${Math.min(w,hh)*.42}px "Zen Old Mincho","Hiragino Mincho ProN",serif`;
+  c.fillText(m.glyph,cx,cy);
+}
+
+/* ---------- start ---------- */
+function setName(n){
+  S.name=n.trim();$("#go").disabled=!S.name;
+  document.querySelectorAll("#chips button").forEach(b=>b.classList.toggle("on",b.dataset.n===S.name));
+}
+feed.addEventListener("click",e=>{
+  const chip=e.target.closest("#chips button");
+  if(chip){$("#name").value=chip.dataset.n;setName(chip.dataset.n);return}
+  if(e.target.closest("#go")){begin();return}
+  const vb=e.target.closest(".vb");if(vb){vote(vb.dataset.id,vb.dataset.v,vb);return}
+});
+feed.addEventListener("input",e=>{if(e.target.id==="name")setName(e.target.value)});
+feed.addEventListener("keydown",e=>{if(e.target.id==="name"&&e.key==="Enter"&&S.name)begin()});
+
+function begin(){
+  store("dishvote.name",S.name);
+  const saved=store("dishvote.picks."+S.name);
+  S.picks=saved||(S.remote[keyOf(S.name)]?.picks)||{};
+  $("#who").textContent=S.name+" 님 투표 중";$("#who").hidden=false;$("#prog").hidden=false;
+  paintPicks();
+  const next=MENUS.find(m=>!S.picks[m.id]);
+  go(next?"#c-"+next.id:"#c-"+MENUS[0].id);
+}
+function go(sel){const el=$(sel);if(el)el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"})}
+
+/* ---------- vote ---------- */
+function vote(id,v,btn){
+  if(!S.name){go("#c-start");$("#name").focus();return}
+  S.picks[id]=v;store("dishvote.picks."+S.name,S.picks);
+  paintPicks();btn.querySelector(".dot").classList.remove("pop");void btn.offsetWidth;btn.querySelector(".dot").classList.add("pop");
+  queueSave();
+  const i=MENUS.findIndex(m=>m.id===id);
+  setTimeout(()=>go(i<MENUS.length-1?"#c-"+MENUS[i+1].id:"#c-result"),380);
+}
+function paintPicks(){
+  document.querySelectorAll(".vb").forEach(b=>b.classList.toggle("sel",S.picks[b.dataset.id]===b.dataset.v));
+  document.querySelectorAll("#prog span").forEach(s=>{s.className=S.picks[s.dataset.id]||""});
+  renderResult();
+}
+
+/* ---------- Google Sheet save (Apps Script web app) ---------- */
+function queueSave(){S.dirty=true;clearTimeout(S.saveTimer);S.saveTimer=setTimeout(flush,700)}
+async function flush(){
+  if(!API||S.saving||!S.dirty||!S.name)return;
+  S.saving=true;S.dirty=false;
+  try{
+    const r=await fetch(API,{method:"POST",body:JSON.stringify({name:S.name,picks:S.picks})});
+    const j=await r.json();S.dbOk=!!j.ok;
+  }catch(e){S.dbOk=false;S.dirty=true}
+  S.saving=false;renderResult();if(S.dirty&&S.dbOk!==false)flush();
+}
+async function loadVotes(){
+  if(!API)return;
+  try{
+    const j=await (await fetch(API+"?t="+Date.now())).json();
+    const m={};(j.votes||[]).forEach(v=>{if(v.name)m[keyOf(v.name)]=v});S.remote=m;S.dbOk=S.dbOk??true;
+    if(S.name&&!Object.keys(S.picks).length&&m[keyOf(S.name)]){S.picks={...m[keyOf(S.name)].picks};paintPicks()}else renderResult();
+  }catch(e){}
+}
+
+/* ---------- results ---------- */
+function allVoters(){
+  const map={...S.remote};
+  if(S.name&&Object.keys(S.picks).length)map[keyOf(S.name)]={name:S.name,picks:S.picks};
+  return Object.values(map);
+}
+function renderResult(){
+  const box=$("#resultInner");if(!box)return;
+  const voters=allVoters(),done=MENUS.filter(m=>S.picks[m.id]).length;
+  let h=`<div><h2>가족 투표 결과</h2><p class="sub">${voters.length}명 참여 · 점수는 좋아요 2점, 보통 1점, 싫어요 0점${S.name?` · ${esc(S.name)} 님은 ${done}/${MENUS.length}개 골랐어요`:""}</p></div>`;
+  if(!voters.length)h+=`<p class="empty">아직 투표가 없어요. 위로 올라가서 첫 번째로 골라주세요.</p>`;
+  else{
+    const rows=MENUS.map(m=>{
+      const c={like:[],meh:[],no:[]};voters.forEach(v=>{const p=v.picks?.[m.id];if(c[p])c[p].push(v.name)});
+      const tot=c.like.length+c.meh.length+c.no.length,score=c.like.length*2+c.meh.length;
+      return{m,c,tot,score};
+    }).sort((a,b)=>b.score-a.score||b.c.like.length-a.c.like.length||a.c.no.length-b.c.no.length);
+    h+=`<div class="slotblock"><h3>선호도 순위</h3>`+rows.map((r,i)=>{
+      const seg=v=>r.tot?`<span style="width:${r.c[v].length/r.tot*100}%;background:var(--${v})"></span>`:"";
+      const who=["like","meh","no"].filter(v=>r.c[v].length).map(v=>`${LABEL[v]} ${r.c[v].map(esc).join(", ")}`).join(" · ");
+      return `<div class="row${i<3&&r.score>0?" win":""}"><div class="nm" data-rank="${i+1}">${r.m.dish}<small>${r.m.cat}</small></div>
+        <div class="sc"><b>${r.score}</b>점</div><div class="bar">${seg("like")}${seg("meh")}${seg("no")}</div>
+        ${who?`<div class="voters">${who}</div>`:""}</div>`;
+    }).join("")+`</div>`;
+  }
+  const st=!API?`<span class="status">아직 저장소가 연결되지 않았어요. (설정 필요)</span>`
+    :S.dbOk===true?`<span class="status ok">구글 시트에 저장됐어요. 가족 모두에게 같은 결과가 보여요.</span>`
+    :S.dbOk===false?`<span class="status">저장에 실패했어요. 인터넷 연결을 확인하고 버튼을 다시 눌러주세요.</span>`
+    :`<span class="status">고르면 자동으로 저장돼요.</span>`;
+  h+=`<div class="box">${st}<button class="ghost" id="refresh">결과 새로고침</button></div>
+  <button class="ghost" id="again">처음부터 다시 고르기</button>`;
+  box.innerHTML=h;
+}
+document.addEventListener("click",e=>{
+  if(e.target.id==="refresh"){if(S.dirty)flush();loadVotes()}
+  if(e.target.id==="again"){go("#c-"+MENUS[0].id)}
+});
+
+/* ---------- photos ---------- */
+const CREDITS={takoyaki:"와나카",okonomi:"미즈노",kushikatsu:"다루마",tempura:"마키노",cheesecake:"리쿠로오지상"};
+function applyPhoto(id){
+  const art=document.querySelector(`#c-${id} .art`);if(!art)return;
+  const img=new Image();img.alt="";img.src=id+".jpg";img.onerror=()=>img.remove();art.appendChild(img);
+  if(CREDITS[id]){const c=document.createElement("div");c.className="credit";c.textContent=CREDITS[id];art.parentNode.appendChild(c)}
+}
+
+/* ---------- boot ---------- */
+build();
+const last=store("dishvote.name");if(last){$("#name").value=last;setName(last)}
+renderResult();
+window.addEventListener("resize",()=>{clearTimeout(window.__rz);window.__rz=setTimeout(()=>document.querySelectorAll(".art canvas").forEach(paint),200)});
+document.fonts?.ready.then(()=>document.querySelectorAll(".art canvas").forEach(paint));
+
+MENUS.forEach(m=>applyPhoto(m.id));
+loadVotes();
+setInterval(()=>{if(!document.hidden)loadVotes()},20000);
+</script>
+</body>
+</html>
