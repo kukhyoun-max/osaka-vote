@@ -16,7 +16,7 @@
   --line:rgba(246,239,230,.16);
   --like:#ff7a59;         /* 좋아요 */
   --meh:#e8c15a;          /* 보통 */
-  --no:#7d8aa3;           /* 싫어요 */
+  --no:#5b6b8c;           /* 싫어요 */
   --chip:rgba(20,17,16,.55);
   --f-display:"Do Hyeon","Gothic A1",system-ui,sans-serif;
   --f-body:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
@@ -41,17 +41,19 @@ body{font-family:var(--f-body);overflow:hidden;-webkit-font-smoothing:antialiase
 .top span{flex:1;height:3px;border-radius:2px;background:var(--line);transition:background .25s}
 .top span.on{background:var(--paper)}
 .top span.like{background:var(--like)}.top span.meh{background:var(--meh)}.top span.no{background:var(--no)}
-.who{position:fixed;z-index:20;top:calc(env(safe-area-inset-top,0px) + 22px);left:max(16px,env(safe-area-inset-left,0px));font-size:13px;color:var(--muted);pointer-events:none}
+.who{position:fixed;z-index:20;top:calc(env(safe-area-inset-top,0px) + 22px);left:max(16px,env(safe-area-inset-left,0px));font-size:16px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.7);color:var(--muted);pointer-events:none}
 
 /* caption */
 .slot{display:inline-flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.tag{font-size:12px;font-weight:600;padding:5px 9px;border-radius:999px;background:var(--chip);border:1px solid var(--line);letter-spacing:.02em;backdrop-filter:blur(6px)}
+.tag{font-size:15px;font-weight:700;padding:6px 12px;border-radius:999px;background:var(--chip);border:1px solid var(--line);letter-spacing:.02em;backdrop-filter:blur(6px)}
 .tag.res{border-color:var(--like);color:var(--like)}
 .tag.walk{color:var(--muted)}
 .place{font-size:14px;color:var(--muted);margin:0 0 2px}
-.dish{font-family:var(--f-display);font-size:clamp(34px,9vw,48px);line-height:1.05;margin:0 0 8px;text-wrap:balance}
-.desc{font-size:14px;line-height:1.55;color:var(--paper);opacity:.9;max-width:34ch;margin:0}
-.seepics{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font:700 15px var(--f-body);color:var(--ink);background:var(--paper);border-radius:999px;padding:10px 16px;text-decoration:none}
+.dish{font-family:var(--f-display);font-size:clamp(42px,11vw,58px);line-height:1.05;margin:0 0 8px;text-wrap:balance}
+.dish .alias{display:block;font-family:var(--f-body);font-size:clamp(20px,5.5vw,26px);font-weight:800;color:var(--meh);margin-top:6px;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.ralias{font-weight:600;color:var(--muted);font-size:15px}
+.desc{font-size:20px;line-height:1.55;font-weight:600;color:var(--paper);max-width:30ch;margin:0;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.seepics{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font:700 17px var(--f-body);color:var(--ink);background:var(--paper);border-radius:999px;padding:10px 16px;text-decoration:none}
 .seepics:focus-visible{outline:2px solid var(--like);outline-offset:2px}
 .wait{margin-top:10px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .wait b{color:var(--paper);font-weight:600}
@@ -59,37 +61,39 @@ body{font-family:var(--f-body);overflow:hidden;-webkit-font-smoothing:antialiase
 /* vote buttons, reels-style right rail */
 .rail{position:relative;z-index:3;order:3;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 6px}
 .vb{appearance:none;border:0;background:none;color:var(--paper);cursor:pointer;padding:0;min-width:0}
-.vb .dot{height:88px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font:800 19px var(--f-body);background:var(--chip);border:2px solid var(--line);backdrop-filter:blur(8px);transition:transform .15s,background .2s,border-color .2s}
-.vb svg{width:32px;height:32px}
+.vb .dot{height:96px;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font:800 22px var(--f-body);border:4px solid transparent;box-shadow:0 6px 18px rgba(0,0,0,.35);transition:transform .15s,border-color .2s,opacity .2s}
+.vb[data-v="like"] .dot{background:var(--like);color:#fff}
+.vb[data-v="meh"] .dot{background:var(--meh);color:#2a1d00}
+.vb[data-v="no"] .dot{background:var(--no);color:#fff}
+.rail.has-pick .vb:not(.sel) .dot{opacity:.45}
+.vb.sel .dot{border-color:#fff;transform:scale(1.04)}
+.vb svg{width:36px;height:36px}
 .vb:active .dot{transform:scale(.9)}
 .vb:focus-visible .dot{outline:2px solid var(--paper);outline-offset:3px}
-.vb[data-v="like"].sel .dot{background:var(--like);border-color:var(--like)}
-.vb[data-v="meh"].sel .dot{background:var(--meh);border-color:var(--meh);color:var(--ink)}
-.vb[data-v="no"].sel .dot{background:var(--no);border-color:var(--no)}
 .pop{animation:pop .35s ease}
 @keyframes pop{40%{transform:scale(1.25)}}
 .dishcard .inner{order:2;padding-block:20px 14px}
 .photo-btn{position:absolute;z-index:3;top:calc(env(safe-area-inset-top,0px) + 48px);right:max(16px,env(safe-area-inset-right,0px));font:700 14px var(--f-body);color:var(--ink);background:var(--paper);border-radius:999px;padding:10px 14px;cursor:pointer}
 .photo-btn input{display:none}
 .credit{position:absolute;z-index:3;right:max(16px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 92px);max-width:60%;text-align:right;font-size:10px;line-height:1.35;color:var(--paper);opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.8)}
-.hint{position:relative;z-index:3;order:4;text-align:center;font-size:12px;color:var(--muted);padding-block:6px 14px}
+.hint{position:relative;z-index:3;order:4;text-align:center;font-size:15px;color:var(--muted);padding-block:6px 14px}
 
 /* start card */
 .start{justify-content:center;background:radial-gradient(120% 80% at 70% 10%,#5a2a1c 0%,var(--ink) 60%)}
 .start .inner{padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px;max-width:520px}
 .kicker{font-size:13px;letter-spacing:.12em;color:var(--like);font-weight:800}
 .start h1{font-family:var(--f-display);font-size:clamp(40px,11vw,60px);line-height:1;margin:0}
-.start p{margin:0;color:var(--muted);line-height:1.6;font-size:15px}
-.legend{display:flex;gap:14px;font-size:13px;color:var(--paper)}
+.start p{margin:0;color:var(--paper);line-height:1.6;font-size:19px}
+.legend{display:flex;gap:16px;font-size:17px;font-weight:700;color:var(--paper)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
-label.lbl{font-size:13px;color:var(--muted)}
+label.lbl{font-size:18px;font-weight:700;color:var(--paper)}
 .namebox{display:flex;gap:8px}
 input[type=text],textarea{width:100%;min-width:0;background:rgba(246,239,230,.08);border:1px solid var(--line);color:var(--paper);border-radius:12px;padding:14px;font:16px var(--f-body)}
 input[type=text]:focus,textarea:focus{outline:2px solid var(--like);outline-offset:1px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
-.chips button{appearance:none;border:1px solid var(--line);background:transparent;color:var(--paper);border-radius:999px;padding:8px 14px;font:600 14px var(--f-body);cursor:pointer}
+.chips button{appearance:none;border:2px solid var(--line);background:transparent;color:var(--paper);border-radius:999px;padding:12px 20px;font:700 19px var(--f-body);cursor:pointer}
 .chips button.on{background:var(--paper);color:var(--ink)}
-.go{appearance:none;border:0;border-radius:14px;padding:16px;background:var(--like);color:#1b0f0b;font:800 17px var(--f-body);cursor:pointer}
+.go{appearance:none;border:0;border-radius:14px;padding:18px;background:var(--like);color:#1b0f0b;font:800 21px var(--f-body);cursor:pointer}
 .go:disabled{opacity:.4;cursor:default}
 .go:focus-visible,.chips button:focus-visible,.ghost:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
 
@@ -97,17 +101,17 @@ input[type=text]:focus,textarea:focus{outline:2px solid var(--like);outline-offs
 .result{justify-content:flex-start;background:var(--ink)}
 .result .inner{padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:calc(env(safe-area-inset-top,0px) + 40px);overflow-y:auto;height:100%;display:flex;flex-direction:column;gap:22px;max-width:640px;width:100%;margin:0 auto}
 .result h2{font-family:var(--f-display);font-size:34px;margin:0}
-.sub{color:var(--muted);font-size:14px;margin:4px 0 0;line-height:1.5}
+.sub{color:var(--muted);font-size:16px;margin:4px 0 0;line-height:1.5}
 .slotblock h3{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:0 0 10px;font-weight:800}
 .row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
-.row .nm{font-weight:600;font-size:15px;min-width:0}
+.row .nm{font-weight:700;font-size:18px;min-width:0}
 .row .nm small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
 .row .sc{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);text-align:right}
 .row .sc b{color:var(--paper);font-size:18px;margin-right:2px}
 .bar{grid-column:1/-1;display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line)}
 .bar span{display:block;height:100%}
 .row.win .nm::before{content:attr(data-rank) "위";font-size:11px;font-weight:800;color:var(--ink);background:var(--like);border-radius:4px;padding:2px 5px;margin-right:6px;vertical-align:2px}
-.voters{font-size:12px;color:var(--muted);grid-column:1/-1;line-height:1.5}
+.voters{font-size:15px;color:var(--muted);grid-column:1/-1;line-height:1.5}
 .box{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
 .box p{margin:0;font-size:13px;color:var(--muted);line-height:1.55}
 .ghost{appearance:none;background:transparent;border:1px solid var(--line);color:var(--paper);border-radius:12px;padding:12px;font:600 14px var(--f-body);cursor:pointer}
@@ -126,23 +130,23 @@ code.cd{display:block;font-size:12px;word-break:break-all;color:var(--muted);bac
 
 <script>
 const MENUS=[
- {id:"takoyaki",jp:"たこ焼き",cat:"오사카 명물 · 길거리",dish:"타코야키",glyph:"蛸",hue:[24,8],desc:"문어가 들어간 동그란 밀가루 반죽 구이. 겉은 바삭, 속은 촉촉."},
- {id:"okonomi",jp:"お好み焼き 大阪",cat:"오사카 명물 · 철판",dish:"오코노미야키",glyph:"焼",hue:[22,10],desc:"양배추 듬뿍 넣은 반죽에 돼지고기·해물을 올려 철판에 굽는 오사카식 전."},
- {id:"kushikatsu",jp:"串カツ 新世界",cat:"오사카 명물 · 튀김",dish:"쿠시카츠",glyph:"串",hue:[35,15],desc:"고기·채소·해물 꼬치튀김. 공용 소스는 한 번만 찍는 게 규칙."},
- {id:"udon",jp:"きつねうどん 大阪",cat:"오사카 명물 · 면",dish:"키츠네 우동",glyph:"饂",hue:[38,30],desc:"맑은 간사이 다시 국물에 달게 조린 큰 유부. 속 편한 한 그릇."},
+ {id:"takoyaki",alias:"문어빵",jp:"たこ焼き",cat:"오사카 명물 · 길거리",dish:"타코야키",glyph:"蛸",hue:[24,8],desc:"문어가 들어간 동그란 밀가루 반죽 구이. 겉은 바삭, 속은 촉촉."},
+ {id:"okonomi",alias:"일본식 부침개",jp:"お好み焼き 大阪",cat:"오사카 명물 · 철판",dish:"오코노미야키",glyph:"焼",hue:[22,10],desc:"양배추 듬뿍 넣은 반죽에 돼지고기·해물을 올려 철판에 굽는 오사카식 전."},
+ {id:"kushikatsu",alias:"꼬치튀김",jp:"串カツ 新世界",cat:"오사카 명물 · 튀김",dish:"쿠시카츠",glyph:"串",hue:[35,15],desc:"고기·채소·해물 꼬치튀김. 공용 소스는 한 번만 찍는 게 규칙."},
+ {id:"udon",alias:"유부 우동",jp:"きつねうどん 大阪",cat:"오사카 명물 · 면",dish:"키츠네 우동",glyph:"饂",hue:[38,30],desc:"맑은 간사이 다시 국물에 달게 조린 큰 유부. 속 편한 한 그릇."},
  {id:"unagi",jp:"うな重",cat:"정식 · 덮밥",dish:"장어덮밥",glyph:"鰻",hue:[28,40],desc:"양념 바른 장어구이를 밥 위에. 부모님 식사로 무난한 보양식."},
- {id:"sushi",jp:"寿司 大阪",cat:"해산물",dish:"스시",glyph:"鮨",hue:[200,220],desc:"회전초밥부터 카운터 스시까지. 오사카식 상자초밥(하코즈시)도 있어요."},
- {id:"kani",jp:"かに料理 道頓堀",cat:"해산물 · 코스",dish:"게 요리 코스",glyph:"蟹",hue:[8,355],desc:"게 회·구이·튀김·전골까지 나오는 코스. 앉아서 천천히 먹기 좋아요."},
- {id:"yakiniku",jp:"和牛 焼肉",cat:"고기",dish:"와규 야키니쿠",glyph:"肉",hue:[0,18],desc:"마블링 좋은 일본 소고기를 숯불에 직접 굽는 고기집."},
- {id:"sukiyaki",jp:"すき焼き",cat:"고기 · 전골",dish:"스키야키",glyph:"鋤",hue:[15,350],desc:"간장·설탕 국물에 소고기를 익혀 날계란에 찍어 먹는 전골."},
- {id:"shabu",jp:"しゃぶしゃぶ",cat:"고기 · 전골",dish:"샤브샤브",glyph:"鍋",hue:[12,340],desc:"얇은 고기를 다시 국물에 살짝 데쳐 소스에 찍어 먹어요."},
- {id:"gyukatsu",jp:"牛カツ",cat:"고기 · 튀김",dish:"규카츠",glyph:"牛",hue:[18,30],desc:"속은 레어로 튀긴 소고기 커틀릿. 작은 화로에 취향껏 더 구워 먹어요."},
- {id:"ramen",jp:"ラーメン 大阪",cat:"면",dish:"라멘",glyph:"麺",hue:[40,20],desc:"돈코츠·쇼유·시오 등. 웨이팅 짧고 빨리 먹기 좋은 한 끼."},
- {id:"tempura",jp:"天ぷら 天丼",cat:"튀김 · 덮밥",dish:"텐푸라 · 텐동",glyph:"天",hue:[44,28],desc:"새우·채소 튀김 정식이나 튀김을 올린 덮밥."},
- {id:"yudofu",jp:"湯豆腐 京都",cat:"교토 명물",dish:"유도후",glyph:"豆",hue:[45,60],desc:"다시마 국물에 데운 두부. 교토 사찰 요리답게 담백하고 속 편해요."},
- {id:"butaman",jp:"551蓬莱 豚まん",cat:"간식 · 테이크아웃",dish:"551 호라이 부타만",glyph:"饅",hue:[30,45],desc:"오사카 대표 고기 찐빵. 줄 서서 사서 호텔에서 먹기 좋아요."},
- {id:"cheesecake",jp:"りくろーおじさん チーズケーキ",cat:"디저트",dish:"리쿠로 치즈케이크",glyph:"菓",hue:[42,32],desc:"갓 구운 폭신한 수플레 치즈케이크. 오사카 대표 디저트 선물."},
- {id:"matcha",jp:"抹茶 パフェ 京都",cat:"교토 · 디저트",dish:"말차 디저트",glyph:"茶",hue:[95,120],desc:"말차 파르페·아이스크림. 교토 일정 중 카페 휴식 메뉴로."}
+ {id:"sushi",alias:"초밥",jp:"寿司 大阪",cat:"해산물",dish:"스시",glyph:"鮨",hue:[200,220],desc:"회전초밥부터 카운터 스시까지. 오사카식 상자초밥(하코즈시)도 있어요."},
+ {id:"kani",alias:"게 코스요리",jp:"かに料理 道頓堀",cat:"해산물 · 코스",dish:"게 요리 코스",glyph:"蟹",hue:[8,355],desc:"게 회·구이·튀김·전골까지 나오는 코스. 앉아서 천천히 먹기 좋아요."},
+ {id:"yakiniku",alias:"일본식 소고기 구이",jp:"和牛 焼肉",cat:"고기",dish:"와규 야키니쿠",glyph:"肉",hue:[0,18],desc:"마블링 좋은 일본 소고기를 숯불에 직접 굽는 고기집."},
+ {id:"sukiyaki",alias:"달큰한 소고기 전골",jp:"すき焼き",cat:"고기 · 전골",dish:"스키야키",glyph:"鋤",hue:[15,350],desc:"간장·설탕 국물에 소고기를 익혀 날계란에 찍어 먹는 전골."},
+ {id:"shabu",alias:"소고기 데쳐 먹는 전골",jp:"しゃぶしゃぶ",cat:"고기 · 전골",dish:"샤브샤브",glyph:"鍋",hue:[12,340],desc:"얇은 고기를 다시 국물에 살짝 데쳐 소스에 찍어 먹어요."},
+ {id:"gyukatsu",alias:"소고기 돈가스",jp:"牛カツ",cat:"고기 · 튀김",dish:"규카츠",glyph:"牛",hue:[18,30],desc:"속은 레어로 튀긴 소고기 커틀릿. 작은 화로에 취향껏 더 구워 먹어요."},
+ {id:"ramen",alias:"일본식 라면",jp:"ラーメン 大阪",cat:"면",dish:"라멘",glyph:"麺",hue:[40,20],desc:"돈코츠·쇼유·시오 등. 웨이팅 짧고 빨리 먹기 좋은 한 끼."},
+ {id:"tempura",alias:"튀김 · 튀김덮밥",jp:"天ぷら 天丼",cat:"튀김 · 덮밥",dish:"텐푸라 · 텐동",glyph:"天",hue:[44,28],desc:"새우·채소 튀김 정식이나 튀김을 올린 덮밥."},
+ {id:"yudofu",alias:"따뜻한 두부 전골",jp:"湯豆腐 京都",cat:"교토 명물",dish:"유도후",glyph:"豆",hue:[45,60],desc:"다시마 국물에 데운 두부. 교토 사찰 요리답게 담백하고 속 편해요."},
+ {id:"butaman",alias:"고기 찐빵",jp:"551蓬莱 豚まん",cat:"간식 · 테이크아웃",dish:"551 호라이 부타만",glyph:"饅",hue:[30,45],desc:"오사카 대표 고기 찐빵. 줄 서서 사서 호텔에서 먹기 좋아요."},
+ {id:"cheesecake",alias:"폭신한 치즈케이크",jp:"りくろーおじさん チーズケーキ",cat:"디저트",dish:"리쿠로 치즈케이크",glyph:"菓",hue:[42,32],desc:"갓 구운 폭신한 수플레 치즈케이크. 오사카 대표 디저트 선물."},
+ {id:"matcha",alias:"녹차 디저트",jp:"抹茶 パフェ 京都",cat:"교토 · 디저트",dish:"말차 디저트",glyph:"茶",hue:[95,120],desc:"말차 파르페·아이스크림. 교토 일정 중 카페 휴식 메뉴로."}
 ];
 const PRESETS=["아빠","엄마","진선","세훈","채민","국현"];
 const SCORE={like:2,meh:1,no:0};
@@ -182,7 +186,7 @@ function build(){
       <div class="rail">${["like","meh","no"].map(v=>`<button class="vb" data-v="${v}" data-id="${m.id}" aria-label="${m.dish} ${LABEL[v]}"><span class="dot">${ICON[v]}${LABEL[v]}</span></button>`).join("")}</div>
       <div class="inner">
         <div class="slot"><span class="tag">${m.cat}</span><span class="tag walk">${i+1} / ${MENUS.length}</span></div>
-        <h2 class="dish">${m.dish}</h2>
+        <h2 class="dish">${m.dish}${m.alias?`<span class="alias">${m.alias}</span>`:""}</h2>
         <p class="desc">${m.desc}</p>
         <a class="seepics" href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(m.jp)}" target="_blank" rel="noopener">사진 더 보기 ↗</a>
       </div>
@@ -253,6 +257,7 @@ function vote(id,v,btn){
 }
 function paintPicks(){
   document.querySelectorAll(".vb").forEach(b=>b.classList.toggle("sel",S.picks[b.dataset.id]===b.dataset.v));
+  document.querySelectorAll(".rail").forEach(r=>{const id=r.querySelector(".vb").dataset.id;r.classList.toggle("has-pick",!!S.picks[id])});
   document.querySelectorAll("#prog span").forEach(s=>{s.className=S.picks[s.dataset.id]||""});
   renderResult();
 }
@@ -297,7 +302,7 @@ function renderResult(){
     h+=`<div class="slotblock"><h3>선호도 순위</h3>`+rows.map((r,i)=>{
       const seg=v=>r.tot?`<span style="width:${r.c[v].length/r.tot*100}%;background:var(--${v})"></span>`:"";
       const who=["like","meh","no"].filter(v=>r.c[v].length).map(v=>`${LABEL[v]} ${r.c[v].map(esc).join(", ")}`).join(" · ");
-      return `<div class="row${i<3&&r.score>0?" win":""}"><div class="nm" data-rank="${i+1}">${r.m.dish}<small>${r.m.cat}</small></div>
+      return `<div class="row${i<3&&r.score>0?" win":""}"><div class="nm" data-rank="${i+1}">${r.m.dish}${r.m.alias?` <span class="ralias">(${r.m.alias})</span>`:""}<small>${r.m.cat}</small></div>
         <div class="sc"><b>${r.score}</b>점</div><div class="bar">${seg("like")}${seg("meh")}${seg("no")}</div>
         ${who?`<div class="voters">${who}</div>`:""}</div>`;
     }).join("")+`</div>`;
